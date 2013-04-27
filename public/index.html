@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>ld26 minimilism</title>
+<script src="http://code.createjs.com/createjs-2013.02.12.min.js"></script>
+<script src="http://code.createjs.com/preloadjs-0.3.0.min.js"></script>
+<script src="http://code.createjs.com/soundjs-0.4.0.min.js"></script>
+
+<script src="lib/game/game.js"></script>
+
+
+
+</head>
+<body onload="init();">
+Game goes here 
+
+<div style='width:800px;'
+<canvas id="GameStage" width="800" height="600">
+
+
+
+<script type="text/javascript">
+
+var game;
+
+//game assets to load and pass to game for preloading
+var manifest = [
+	{src:'tile_set.png', id:'tileset_temp'}
+
+];
+
+function init(){
+	game = new Game("gameStage", manifest);
+}
+
+</script>
+
+</body>
+</html>
