@@ -17,7 +17,7 @@ function PlayState(game){
 
 
 	this.init = function(){
-		//generate outside map object
+		//generate outside map
 		var self = this;
 		this.outside = new Map(self);
 		this.outside.loadTiles(self.game.assets.img.tileset_temp2.tag);
@@ -26,12 +26,13 @@ function PlayState(game){
 
 		self.game.stage.addChild(this.outside.mapWrap);
 
-		//start by initiating player
+		//init player
+		this.player = new Player(self);
 
 
 	};
 
-	this.handleTick = function(){
+	this.handleTick = function(evt){
 
 	};
 }

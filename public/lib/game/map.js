@@ -82,7 +82,10 @@ function Map(opts){
 
 	};
 
+	//handle map updates 
+	this.handleTick = function(evt){
 
+	};
 
 
 	this.dummyMap =  { "height":10,
