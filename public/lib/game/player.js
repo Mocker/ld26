@@ -24,6 +24,7 @@ function Player(playstate) {
 
 	this.inventory = [];
 	this.vel = [0,0];
+	this.pos = {x:0,y:0};
 
 	//example structure for storing spritesheet and related animation data
 	this.spritesheets = {
@@ -31,13 +32,9 @@ function Player(playstate) {
 			images : [this.game.assets.img.player_anim.tag], //match id loaded into assets from preloaded
 			frames : { width: 64, height: 64, regX: 32, regY: 32 }, //width/height for each frame in this spritesheet
 			animations : {
-				run : {
-					frames : [1,2,3,4,5,6,7,8,9,'run'],
-					//frames : [1, 9, 'run', 1],
-					frequency : 2,
-					},
+				run : [1, 9, 'run', 1],
 				walk : [1, 9, 'walk', 4],
-				stand : [0]
+				stand : [3]
 			}
 		}
 	};
@@ -56,7 +53,7 @@ function Player(playstate) {
 		this.loadAnimations();
 
 		// Do stuff with the animation
-		this.animation.gotoAndPlay("run");
+		this.animation.gotoAndPlay("stand");
 		this.animation.direction = -90;
 		this.animation.vX = 1;// speed of the animation
 		this.animation.x  = 100;
@@ -72,6 +69,7 @@ function Player(playstate) {
 	this.handleTick = function(evt){
 
 		// Hit testing the screen width, otherwise our sprite would disappear
+		/*
 		if (this.vel[0] > 0 && this.animation.x >= this.screen_width - 16) {
 			// We've reached the right side of our screen
 			// We need to walk left now to go back to our initial position
@@ -89,21 +87,20 @@ function Player(playstate) {
 			this.vel[0] = 0;
 			this.animation.x = 16;
 		}
-
-		// Moving the sprite based on the direction & the speed
-		/*
-		if (this.animation.direction == 90) {
-			this.animation.x += this.animation.vX;
-		}
-		else {
-			this.animation.x -= this.animation.vX;
-		}*/
+		*/
+		
+		/* Move tilemap instead of animation
 		this.animation.x += this.vel[0];
 		this.animation.y += this.vel[1];
+		*/
+		this.state.curmap.move(this.vel);
 
-		if(this.vel[0] == 0 && this.vel[1] == 0 && this.animation.currentAnimation !="stand" ) this.animation.gotoAndPlay("stand");
-		if(this.vel[0] < 0 && this.animation.currentAnimation != "run" ) this.animation.gotoAndPlay("run");
-		if(this.vel[0] > 0 && this.animation.currentAnimation != "run_h") this.animation.gotoAndPlay("run_h");
+		/*
+		if(this.vel[0] == 0 && this.vel[1] == 0 && (this.animation.currentAnimation !="stand" || this.animation.currentAnimation != "stand_h")){
+			this.animation.gotoAndPlay("stand");
+		} */
+		if(this.vel[0] < 0 && this.animation.currentAnimation != "walk" ) this.animation.gotoAndPlay("walk");
+		if(this.vel[0] > 0 && this.animation.currentAnimation != "walk_h") this.animation.gotoAndPlay("walk_h");
 		// update the stage:
 		this.game.stage.update();
 	};
@@ -150,6 +147,7 @@ function Player(playstate) {
 	this.moveLeft = function(isMouseUp){
 		if(isMouseUp){
 			this.vel[0] = 0;
+			this.animation.gotoAndPlay("stand");
 			return;
 		}
 		this.setDirection(90);
@@ -158,6 +156,7 @@ function Player(playstate) {
 	this.moveRight = function(isMouseUp){
 		if(isMouseUp){
 			this.vel[0] = 0;
+			this.animation.gotoAndPlay("stand_h");
 			return;
 		}
 		this.setDirection(270);

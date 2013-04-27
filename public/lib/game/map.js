@@ -10,6 +10,7 @@ function Map(state, opts){
 		tile_width : 32,
 		tile_height : 32,
 	};
+	this.offset = [0, 0]; //apply offset to children objects in order to rerender map tiles based on current view
 	this.params = opts;
 	console.log(this.params);
 	this.loadTiles = function(img){
@@ -45,6 +46,16 @@ function Map(state, opts){
 		for(var i=0;i<(this.params.width*this.params.height);i++){
 			x = Math.random();
 			this.mapData.layers[0].data[i] = (x<0.8)?1:2;
+		}
+
+		this.mapData.layers[0].grid = [];
+		var ran, grid = [];
+		for(x=0;x<this.params.width;x++){
+			grid[x] = [];
+			for(var y=0; y<this.params.height; y++){
+				ran = Math.random();
+				grid[x][y] = (ran<0.8)?1:2;
+			}
 		}
 
 		//create random decals
@@ -107,6 +118,8 @@ function Map(state, opts){
 			self.mapWrap.addChild(cellBitmap);
 		}
 		console.log(mapWidth, mapHeight);
+		self.mapWidth = mapWidth * self.opts.tile_width;
+		self.mapHeight = mapHeight * self.opts.tile_height;
 		//self.mapWrap.x = (mapWidth*self.opts.tile_width)/2;
 		//self.mapWrap.y = (mapHeight*self.opts.tile_height)/2;
 
@@ -130,6 +143,23 @@ function Map(state, opts){
 		this.mapWrap.cache(0,0,mapWidth,mapHeight);
 		*/
 
+	};
+
+	this.move = function(vel){
+		//when player moves map wrapper shifts around player - 
+		//check for collision if ok return true
+
+		/*
+		if(0 > this.mapWrap.x + vel[0] ) return false;
+		if(0 > this.mapWrap.y + vel[1] ) return false;
+		if(this.mapheight < this.mapWrap.y + vel[1] ) return false;
+		if(this.mapWidth < this.mapWrap.x + vel[0]  ) return false;
+		*/
+
+		this.mapWrap.x -= vel[0];
+		this.mapWrap.y -= vel[1];
+
+		return true;
 	};
 
 	//handle map updates 

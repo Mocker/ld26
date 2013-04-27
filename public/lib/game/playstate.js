@@ -21,8 +21,8 @@ function PlayState(game){
 	var self = this;
 
 	this.opts = {
-		outside_width: 35, 
-		outside_height: 35
+		outside_width: 50, 
+		outside_height: 50
 	};
 
 	this.keyHandlers = { //callbacks for key events
@@ -125,6 +125,11 @@ function PlayState(game){
 		};
 		this.outside.loadMap(this.outside.dummyMap);
 		this.outside.renderMap();
+
+		//place buildings
+		var entrances = [];
+		var numEntrances = 6;
+		
 		
 		self.curmap = this.outside;
 
