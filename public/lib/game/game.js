@@ -85,6 +85,19 @@ function Game(canvasID, manifest) {
 		}
 	};
 
+	this.handleKeyDown = function(evt){
+		if(this.state == "play" && this.states.play){
+			this.states.play.handleKeyDown(evt);
+		}
+
+	};
+
+	this.handleKeyUp = function(evt){
+		if(this.state == "play" && this.states.play){
+			this.states.play.handleKeyUp(evt);
+		}
+	};
+
 	this.setupTitle = function(){
 		//draw title and start preloader
 		var self = this;
@@ -126,6 +139,7 @@ function Game(canvasID, manifest) {
 
 
 	//start game by initializing title screen
-
+	document.onkeydown = function(evt){ self.handleKeyDown(evt); };
+	document.onkeyup = function(evt){ self.handleKeyUp(evt); };
 	this.setupTitle();
 }

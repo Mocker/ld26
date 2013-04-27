@@ -13,8 +13,9 @@ function PlayState(game){
 	this.outside = false; 
 	this.levels = [];
 	this.loaded = false;
-	this.paused = true;
+	this.paused = false;
 	this.curlvl = 0;
+	this.curmap = undefined;
 	this.wrap = new createjs.Container();
 
 	var self = this;
@@ -24,6 +25,10 @@ function PlayState(game){
 		outside_height: 35
 	};
 
+	this.keyHandlers = { //callbacks for key events
+		
+	};
+
 	this.init = function(){
 		//generate outside map
 		var self = this;
@@ -31,6 +36,14 @@ function PlayState(game){
 
 		//init player
 		this.player = new Player(self);
+		this.player.animation.x = this.game.width/2;
+		this.player.animation.y = this.game.height/2;
+		this.keyHandlers = {
+			87 : function(up){ self.player.moveUp(up); },
+			83 : function(up){ self.player.moveDown(up); },
+			65 : function(up){ self.player.moveLeft(up); },
+			68 : function(up){ self.player.moveRight(up); },
+		};
 
 		//create map mask
 		this.mask = new createjs.Shape();
@@ -67,6 +80,21 @@ function PlayState(game){
 		}
 	};
 
+	this.handleKeyDown = function(evt){
+		if(this.paused) return;
+		var self = this;
+		if(self.keyHandlers[evt.keyCode] ){
+			self.keyHandlers[evt.keyCode](false);
+		}
+	};
+
+	this.handleKeyUp = function(evt){
+		if(this.paused) return;
+		if(self.keyHandlers[evt.keyCode] ){
+			self.keyHandlers[evt.keyCode](true);
+		}
+	};
+
 
 
 	this.loadOutside = function(){
@@ -98,6 +126,7 @@ function PlayState(game){
 		this.outside.loadMap(this.outside.dummyMap);
 		this.outside.renderMap();
 		
+		self.curmap = this.outside;
 
 		self.wrap.addChild(this.outside.mapWrap);
 	};
