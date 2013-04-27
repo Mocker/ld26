@@ -1,0 +1,7 @@
+bace tile 1 = 129 0 32 32
+bace tile 2 = 129 33 32 32
+big crater = 0 129 64 64
+LX crater = 0 0 128 128
+medium crater = 65 129 32 32
+micro crater = 65 162 16 16
+small crater = 129 66 32 32

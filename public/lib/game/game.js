@@ -15,6 +15,22 @@ function Game(canvasID, manifest) {
 	this.stage.mouseEventsEnabled = true;
 	this.manifest = manifest;
 
+	//create stage mask
+	/*
+	this.mask = new createjs.Shape();
+	// the mask's position will be relative to the parent of its target:
+	this.mask.x = this.width/2;
+	this.mask.y = this.height/2;
+	//TODO-alpha mask not working, should fade out on edges instead of hard mask
+	this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0, 1], this.width/2, this.height/2, 0, this.width/2, this.height/2, this.width/2);
+	this.mask.graphics.drawCircle(0,0,this.width/2).endFill();//drawRect(0,0,this.width,this.height).closePath();
+	this.mask.cache(0,0,this.width,this.height);
+	//this.stage.mask = this.mask;
+	this.stage.filters = [
+		new createjs.AlphaMaskFilter(this.mask.cacheCanvas)
+	];
+	//this.stage.cache(0,0,this.width,this.height);
+	*/
 	this.assets = {img:{},sound:{} };
 
 	createjs.Ticker.addEventListener("tick", handleTick);
@@ -104,6 +120,7 @@ function Game(canvasID, manifest) {
 		this.states.play = new PlayState(game);
 		this.states.play.init();
 		this.state = "play";
+		this.canvas.className = "";
 
 	};
 

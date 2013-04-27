@@ -1,13 +1,17 @@
 /*** map object - load tilesheet + generate map ***/
 
-function Map(opts){
+function Map(state, opts){
+	this.state = state;
 	this.data = null;
 	this.tilesheet = null;
 	this.map = null;
+	this.decals = [];
 	this.opts =  {
 		tile_width : 32,
 		tile_height : 32,
 	};
+	this.params = opts;
+	console.log(this.params);
 	this.loadTiles = function(img){
 		var self= this;
 		//img.width = img.width *2;
@@ -33,9 +37,27 @@ function Map(opts){
 	// and details for if the tiles are blocking/obstacles/etc
 	// maybe couple layers for background non/blocking tiles, 
 	this.loadMap = function(data) {
+		var self = this;
 		this.mapData = data;
-		for(var i=0;i<100;i++){
-			this.mapData.layers[0].data[i] = 12;
+		this.mapData.layers[0].height = this.params.height;
+		this.mapData.layers[0].width = this.params.width;
+		var x = Math.random();
+		for(var i=0;i<(this.params.width*this.params.height);i++){
+			x = Math.random();
+			this.mapData.layers[0].data[i] = (x<0.8)?1:2;
+		}
+
+		//create random decals
+		if(this.params.decals){
+			var dCount = Math.floor(Math.random()*(this.params.decals.max-this.params.decals.min))+this.params.decals.min;
+			var y, d;
+			var ds = this.params.decals.frames; //anim frames to choose which decal to place
+			for(var i=0; i<dCount; i++){
+				x = Math.floor(Math.random()*(this.params.width-2));
+				y = Math.floor(Math.random()*(this.params.height-2));
+				d = Math.floor(Math.random()*ds.length);
+				self.decals.push({x:x,y:y,d:ds[d]});
+			}
 		}
 	};
 
@@ -76,9 +98,37 @@ function Map(opts){
 			}
 			console.log("idx "+idx,this.mapData.layers.length);
 		}
+		for(var idx=0; idx<this.decals.length;idx++){
+			var cellBitmap = new createjs.BitmapAnimation(self.tilesheet);
+			var idxy = this.decals[idx].x + this.decals[idx].y * this.params.width;
+			cellBitmap.gotoAndStop( this.decals[idx].d );
+			cellBitmap.x = this.decals[idx].x*tilewidth;
+			cellBitmap.y = this.decals[idx].y*tileheight;
+			self.mapWrap.addChild(cellBitmap);
+		}
 		console.log(mapWidth, mapHeight);
-		self.mapWrap.x = (mapWidth*self.opts.tile_width)/2;
-		self.mapWrap.y = (mapHeight*self.opts.tile_height)/2;
+		//self.mapWrap.x = (mapWidth*self.opts.tile_width)/2;
+		//self.mapWrap.y = (mapHeight*self.opts.tile_height)/2;
+
+		/*
+		//create map mask
+		this.mask = new createjs.Shape();
+	// the mask's position will be relative to the parent of its target:
+		mapWidth = mapWidth * this.opts.tile_width;
+		mapHeight = mapHeight * this.opts.tile_height;
+		console.log(mapWidth, mapHeight);
+		this.mask.x = mapWidth/2;
+		this.mask.y = mapHeight/2 - 120;
+		this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], this.mask.x, this.mask.y, 10, this.mask.x, this.mask.y, mapHeight/2-150);
+		//this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], 0, 0, 10, 0, 0, mapHeight/4);
+		
+		this.mask.graphics.drawCircle(mapWidth/2,mapHeight/2,mapWidth/2).endFill();//drawRect(0,0,mapWidth,this.height).closePath();
+		this.mask.cache(0,0,mapWidth,mapHeight);
+		this.mapWrap.filters = [
+			new createjs.AlphaMaskFilter(this.mask.cacheCanvas)
+		];
+		this.mapWrap.cache(0,0,mapWidth,mapHeight);
+		*/
 
 	};
 
@@ -102,9 +152,9 @@ function Map(opts){
 		         "x":0,
 		         "y":0
 		        }, 
-		        
+		        /*
 		        {
-		         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 0, 0, 0, 0, 141, 0, 0, 58, 61, 53, 0, 0, 0, 0, 0, 0, 0, 54, 52, 52, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 90, 89, 87, 0, 126, 0, 119, 118, 116, 0, 88, 101, 83, 0, 125, 0, 117, 115, 113, 0, 84, 82, 81, 0, 130, 122, 114, 112, 111, 0, 0, 0, 0, 0, 0, 128, 121, 0, 0, 0],
+		         "data":[0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 4, 0, 0, 5, 8, 8, 0, 0, 0, 0, 141, 0, 0, 58, 61, 53, 0, 0, 0, 0, 0, 0, 0, 54, 52, 52, 0, 0, 0, 0, 0, 0, 151, 0, 0, 0, 90, 89, 87, 0, 126, 0, 119, 118, 116, 0, 88, 101, 83, 0, 125, 0, 117, 115, 113, 0, 84, 82, 81, 0, 130, 122, 114, 112, 111, 0, 0, 0, 0, 0, 0, 128, 121, 0, 0, 0],
 		         "height":10,
 		         "name":"ground01",
 		         "opacity":1,
@@ -114,7 +164,7 @@ function Map(opts){
 		         "x":0,
 		         "y":0,
 		        }
-		        
+		        */
 		        ],
 		 "orientation":"square",
 		 "properties":
