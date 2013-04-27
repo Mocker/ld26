@@ -27,7 +27,8 @@ function Enemy(playstate) {
 			images : [this.game.assets.img.enemy_anim.tag], //match id loaded into assets from preloaded
 			frames : { width: 64, height: 64, regX: 32, regY: 32 }, //width/height for each frame in this spritesheet
 			animations : {
-				stand : [1, 10]
+				run : [0, 9, 'run', 3],
+				walk : [0, 9, 'walk', 8]
 			}
 		}
 	};
@@ -42,35 +43,30 @@ function Enemy(playstate) {
 		this.loadAnimations();
 
 		// Do stuff with the animation
-		this.animation.gotoAndPlay("stand");
-		this.animation.direction = -90;
-		this.animation.vX = 1;// speed of the animation
-		this.animation.x  = 100;
-		this.animation.y  = 50;
+		this.animation.x  = 16;
+		this.animation.y  = 32;
+		this.animation.vX = 1;
 
 		this.animation.currentFrame = 0;
 		this.animation.regX = this.animation.spriteSheet.frameWidth/2|0;
 		this.animation.regY = this.animation.spriteSheet.frameHeight / 2 | 0;
 
 		this.game.stage.addChild(this.enemyWrap);
-		alert(1);
 	};
 
 	this.handleTick = function(evt){
 
 		// Hit testing the screen width, otherwise our sprite would disappear
-		if (this.animation.x >= this.screen_width - 16) {
-			// We've reached the right side of our screen
-			// We need to walk left now to go back to our initial position
+		if (this.animation.x >= this.screen_width - 600) {
+			this.animation.vX = 1;
 			this.animation.direction = -90;
-			this.animation.gotoAndPlay("stand");
+			this.animation.gotoAndPlay("walk");
 		}
 
 		if (this.animation.x < 16) {
-			// We've reached the left side of our screen
-			// We need to walk right now
+			this.animation.vX = 2;
 			this.animation.direction = 90;
-			this.animation.gotoAndPlay("stand_h");
+			this.animation.gotoAndPlay("run_h");
 		}
 
 		// Moving the sprite based on the direction & the speed
