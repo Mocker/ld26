@@ -20,8 +20,8 @@ function PlayState(game){
 	var self = this;
 
 	this.opts = {
-		outside_width: 25, 
-		outside_height: 25
+		outside_width: 35, 
+		outside_height: 35
 	};
 
 	this.init = function(){
@@ -37,17 +37,19 @@ function PlayState(game){
 	// the mask's position will be relative to the parent of its target:
 		mapWidth = this.game.width;
 		mapHeight = this.game.height;
-		this.mask.x = mapWidth/2;
-		this.mask.y = mapHeight/2;
-		this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], this.mask.x, this.mask.y, 10, this.mask.x, this.mask.y, mapHeight/2);
+		//this.mask.x = mapWidth/2;
+		//this.mask.y = mapHeight/2;
+		//this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], this.mask.x, this.mask.y, 10, this.mask.x, this.mask.y, mapHeight/2);
 		//this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], 0, 0, 10, 0, 0, mapHeight/4);
-		
-		this.mask.graphics.drawCircle(mapWidth/2,mapHeight/2,mapWidth/2).endFill();//drawRect(0,0,mapWidth,this.height).closePath();
-		this.mask.cache(0,0,mapWidth,mapHeight);
-		this.wrap.filters = [
-			new createjs.AlphaMaskFilter(this.mask.cacheCanvas)
-		];
-		this.wrap.cache(0,0,mapWidth,mapHeight);
+		this.mask.graphics.beginFill('#000000');
+		this.mask.graphics.drawRect(0,0,mapWidth,mapHeight);
+		//this.mask.graphics.drawCircle(mapWidth/2,mapHeight/2,mapWidth/2).endFill();//drawRect(0,0,mapWidth,this.height).closePath();
+		this.wrap.mask = this.mask;
+		//this.mask.cache(0,0,mapWidth,mapHeight);
+		//this.wrap.filters = [
+		//	new createjs.AlphaMaskFilter(this.mask.cacheCanvas)
+		//];
+		//this.wrap.cache(0,0,mapWidth,mapHeight);
 
 		this.game.stage.addChild(this.wrap);
 
@@ -60,6 +62,8 @@ function PlayState(game){
 			else {
 				//update current lvl
 			}
+
+
 		}
 	};
 

@@ -134,7 +134,7 @@ function Map(state, opts){
 
 	//handle map updates 
 	this.handleTick = function(evt){
-
+		//this.mapWrap.x += 1;
 	};
 
 
