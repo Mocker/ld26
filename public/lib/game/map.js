@@ -8,10 +8,17 @@ function Map(state, opts){
 	this.decals = [];
 	this.opts =  {
 		tile_width : 32,
-		tile_height : 32,
+		tile_height : 32
 	};
 	this.offset = [0, 0]; //apply offset to children objects in order to rerender map tiles based on current view
 	this.params = opts;
+
+	this.tilePosition = {
+		current : {x: 0, y: 0},
+		max : { x: 21, y: 15 },
+		min : { x: 0, y: 0}
+	};
+
 	console.log(this.params);
 	this.loadTiles = function(img){
 		var self= this;
@@ -24,7 +31,7 @@ function Map(state, opts){
 			images : [img],
 			frames : {
 				width: this.opts.tile_width,
-				height: this.opts.tile_height,
+				height: this.opts.tile_height
 			}
 		};
 		this.tilesheet = new createjs.SpriteSheet(this.tilesheet_data);
@@ -104,7 +111,8 @@ function Map(state, opts){
 					cellBitmap.x = x*tilewidth;
 					cellBitmap.y = y*tileheight;
 					// add bitmap to map container
-					self.mapWrap.addChild(cellBitmap);
+					//self.mapWrap.addChild(cellBitmap);
+					//@toDo: should render only canvas size map
 				}
 			}
 			console.log("idx "+idx,this.mapData.layers.length);
@@ -145,19 +153,122 @@ function Map(state, opts){
 
 	};
 
+
+	this.loadTile = function(type) {
+		var self = this;
+		var tilewidth  = self.opts.tile_width;
+		var tileheight = self.opts.tile_height;
+		var layerData  = this.mapData.layers[0];
+
+		switch(type){
+			case 'up':
+				x0 = this.tilePosition.min.x - 1;
+				x1 = this.tilePosition.max.x + 1;
+				y0 = this.tilePosition.max.y;
+				y1 = this.tilePosition.max.y + 2;
+				break;
+			case 'down':
+				x0 = this.tilePosition.min.x - 1;
+				x1 = this.tilePosition.max.x + 1;
+				y0 = this.tilePosition.min.y - 2;
+				y1 = this.tilePosition.min.y;
+				break;
+			case 'right':
+				x0 = this.tilePosition.max.x;
+				x1 = this.tilePosition.max.x + 2;
+				y0 = this.tilePosition.min.y - 1;
+				y1 = this.tilePosition.max.y + 1;
+				break;
+			case 'left':
+				x0 = this.tilePosition.min.x - 2;
+				x1 = this.tilePosition.min.x;
+				y0 = this.tilePosition.min.y - 1;
+				y1 = this.tilePosition.max.y + 1;
+				break;
+		}
+
+		console.log('Current x: ' + this.tilePosition.current.x + ' Max ' + this.tilePosition.max.x + ' Min ' + this.tilePosition.min.x);
+		console.log('Current y: ' + this.tilePosition.current.y + ' Max ' + this.tilePosition.max.y + ' Min ' + this.tilePosition.min.y);
+
+		if(x0 <= 0)
+			x0 = 0;
+		if(y0 <= 0)
+			y0 = 0;
+		if(x1 <= 0)
+			x1 = 0;
+		if(y1 <= 0)
+			y1 = 0;
+
+		// lazy delete
+		for (var x = 0; x <= tilewidth ; x++) {
+			for (var y = 0; y <= tileheight ; y++) {
+				if(x < x0 || x > x1) {
+					if(y < y0 || y > y1) {
+						var cellBitmap = new createjs.BitmapAnimation(self.tilesheet);
+						var idxy = x + y * layerData.width;
+						cellBitmap.gotoAndStop(layerData.data[idxy]-1);
+						self.mapWrap.removeChild(cellBitmap);
+					}
+				}
+			}
+		}
+
+		for (var x = x0; x <= x1 ; x++) {
+			for ( var y = y0; y <= y1 ; y++) {
+				var cellBitmap = new createjs.BitmapAnimation(self.tilesheet);
+				var idxy = x + y * layerData.width;
+				cellBitmap.gotoAndStop(layerData.data[idxy]-1);
+				cellBitmap.x = x*tilewidth;
+				cellBitmap.y = y*tileheight;
+				self.mapWrap.addChild(cellBitmap);
+			}
+		}
+
+		console.log(self.mapWrap.children.length);
+	};
+
 	this.move = function(vel){
 		//when player moves map wrapper shifts around player - 
 		//check for collision if ok return true
 
-		/*
-		if(0 > this.mapWrap.x + vel[0] ) return false;
-		if(0 > this.mapWrap.y + vel[1] ) return false;
-		if(this.mapheight < this.mapWrap.y + vel[1] ) return false;
-		if(this.mapWidth < this.mapWrap.x + vel[0]  ) return false;
-		*/
+		if( 0 < this.mapWrap.x - vel[0] ) return false;
+		if( 0 < this.mapWrap.y - vel[1] ) return false;
+		if( this.mapWidth < (this.mapWrap.x - vel[0])*-1 ) return false;
+		if( this.mapheight < (this.mapWrap.y - vel[1])*-1 ) return false;
+
+		var self       = this;
+		var tilewidth  = self.opts.tile_width;
+		var tileheight = self.opts.tile_height;
 
 		this.mapWrap.x -= vel[0];
 		this.mapWrap.y -= vel[1];
+
+		// console.log(this.mapWrap.x + ',' + this.mapWrap.y + '::' + vel[0] + '.' + vel[1]);
+		// console.log(this.mapWrap.x + ':::::' + this.tilePosition.current.x + ' - ' + this.tilePosition.max.x + ' - ' + this.tilePosition.min.x);
+
+		if (this.tilePosition.current.x > Math.floor(this.mapWrap.x*-1 / tilewidth)) {
+			this.tilePosition.current.x = Math.floor(this.mapWrap.x*-1 / tilewidth);
+			this.tilePosition.max.x--;
+			this.tilePosition.min.x--;
+			this.loadTile('left');
+		} else if (this.tilePosition.current.x < Math.floor(this.mapWrap.x*-1 / tilewidth)) {
+			this.tilePosition.current.x = Math.floor(this.mapWrap.x*-1 / tilewidth);
+			this.tilePosition.max.x++;
+			this.tilePosition.min.x++;
+			this.loadTile('right');
+		}
+
+		if (this.tilePosition.current.y > Math.floor(this.mapWrap.y*-1 / tileheight)) {
+			this.tilePosition.current.y = Math.floor(this.mapWrap.y*-1 / tileheight);
+			this.tilePosition.max.y--;
+			this.tilePosition.min.y--;
+			this.loadTile('down');
+		} else if (this.tilePosition.current.y < Math.floor(this.mapWrap.y*-1 / tileheight)) {
+			this.tilePosition.current.y = Math.floor(this.mapWrap.y*-1 / tileheight);
+			this.tilePosition.max.y++;
+			this.tilePosition.min.y++;
+			this.loadTile('up');
+		}
 
 		return true;
 	};
