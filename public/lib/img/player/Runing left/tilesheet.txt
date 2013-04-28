@@ -1,0 +1,8 @@
+running left 1 = 0 0 21 32
+running left 2 = 22 0 21 32
+running left 3 = 44 0 21 32
+running left 4 = 66 0 21 32
+running left 5 = 0 33 21 32
+running left 6 = 22 33 21 32
+running left 7 = 44 33 21 32
+running left 8 = 66 33 21 32

@@ -51,12 +51,13 @@ function Enemy(playstate) {
 		this.animation.regX = this.animation.spriteSheet.frameWidth/2|0;
 		this.animation.regY = this.animation.spriteSheet.frameHeight / 2 | 0;
 
-		this.game.stage.addChild(this.enemyWrap);
+		//this.game.stage.addChild(this.enemyWrap);
 	};
 
 	this.handleTick = function(evt){
 
 		// Hit testing the screen width, otherwise our sprite would disappear
+		/*
 		if (this.animation.x >= this.screen_width - 600) {
 			this.animation.vX = 1;
 			this.animation.direction = -90;
@@ -76,9 +77,10 @@ function Enemy(playstate) {
 		else {
 			this.animation.x -= this.animation.vX;
 		}
-
+	*/
 		// update the stage:
 		this.game.stage.update();
+		
 	};
 
 	//go thorugh this.animation and load spritesheet from assets for each

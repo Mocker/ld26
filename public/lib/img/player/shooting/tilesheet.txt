@@ -1,0 +1,5 @@
+shooting 1 = 0 0 33 36
+shooting 2 = 34 0 33 36
+shooting 3 = 68 0 33 36
+shooting 5 = 0 37 33 36
+shooting4 = 34 37 33 36

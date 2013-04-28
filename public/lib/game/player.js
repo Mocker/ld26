@@ -163,6 +163,55 @@ function Player(playstate) {
 		this.vel[0] = this.stats.movement;
 	};
 
+	this.enter = function(isMouseUp){
+		console.log('enter');
+		var self = this;
+		if(isMouseUp) return;
+
+		//check for map objects near player to interact with
+		if(self.state.curlvl == 0){
+
+			//check to see if keypad is already visible
+			if(self.state.keypadWrap.visible){
+				//TODO:: check keycode - enter building blah blah
+
+				createjs.Tween.get(self.state.keyInputs.text).to({alpha:0 }, 1000).call(function(){
+					self.state.keyInputs.invalid.alpha = 1;
+					self.state.keyInputs.invalid.visible = true;
+					createjs.Tween.get(self.state.keyInputs.invalid).to({alpha:1},1000).to({alpha:0.5},1000).to({alpha:1},1000);
+				});
+				//fade back in and close
+				createjs.Tween.get(self.state.wrap).wait(2500).to({alpha:1 }, 1500).call(function(){
+						self.state.keyInputs.text.text = "";
+						self.state.keyInputs.text.visible = false;
+						self.state.keyInputs.text.alpha = 1;
+						self.state.keyInputs.enter_code.visible = true;
+						self.state.keyInputs.invalid.visible = false;
+						self.state.keypadWrap.visible = false;
+						self.state.paused = false;
+			}		);
+			}
+
+			//outside - check for keypads
+			var globalPos = self.animation.localToGlobal(0,0);
+			var outsidePos = self.state.outside.mapWrap.globalToLocal(globalPos.x,globalPos.y);
+			console.log(globalPos, outsidePos);
+			var intersects = self.state.outside.mapWrap.getObjectsUnderPoint(outsidePos.x,outsidePos.y);
+			for(var i=0;i<intersects.length;i++){
+				if(intersects[i].obj ){
+					console.log("hit!",intersects[i].obj);
+					
+					self.state.paused = true;
+					createjs.Tween.get(self.state.wrap).to({alpha:0 }, 1500).call(function(){
+						self.state.keypadWrap.visible = true;
+
+			}		);
+				}
+			}
+
+		}
+	}
+
 	//@toDo remove this
 	this.init();
 }

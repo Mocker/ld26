@@ -21,8 +21,8 @@ function PlayState(game){
 	var self = this;
 
 	this.opts = {
-		outside_width: 50, 
-		outside_height: 50
+		outside_width: 40, 
+		outside_height: 40
 	};
 
 	this.keyHandlers = { //callbacks for key events
@@ -43,6 +43,7 @@ function PlayState(game){
 			83 : function(up){ self.player.moveDown(up); },
 			65 : function(up){ self.player.moveLeft(up); },
 			68 : function(up){ self.player.moveRight(up); },
+			13 : function(up){ self.player.enter(up); },
 		};
 
 		//create map mask
@@ -71,7 +72,15 @@ function PlayState(game){
 	this.handleTick = function(evt){
 		if(! this.paused ){
 			if(this.player) this.player.handleTick(evt);
-			if(this.curlvl == 0 ) this.outside.handleTick(evt);
+			if(this.curlvl == 0 ){
+				this.outside.handleTick(evt);
+				//TODO:: place dudes handler inside map object
+				if(this.outside.dudes && this.outside.dudes.length>0){
+					for(var i=0;i<this.outside.dudes.length;i++){
+						this.outside.dudes[i].handleTick(evt);
+					}
+				}
+			} 
 			else {
 				//update current lvl
 			}
@@ -81,7 +90,7 @@ function PlayState(game){
 	};
 
 	this.handleKeyDown = function(evt){
-		if(this.paused) return;
+		if(this.paused && (evt.keyCode != 13)) return;
 		var self = this;
 		if(self.keyHandlers[evt.keyCode] ){
 			self.keyHandlers[evt.keyCode](false);
@@ -127,12 +136,121 @@ function PlayState(game){
 		this.outside.renderMap();
 
 		//place buildings
-		var entrances = [];
+		this.entrances = [];
 		var numEntrances = 6;
+		var prevXY = [300,300];
+		var entrance_imgs = [self.game.assets.img.front_entrance, self.game.assets.img.left_entrance, self.game.assets.img.right_entrance];
+		for(var i=0;i<numEntrances;i++){
+			//place entrances randomly increasingly further from spawn
+			var x = Math.floor(Math.random()*200)+prevXY[0]+50;
+			var y = Math.floor(Math.random()*200)+prevXY[1]+50;
+			var dir = Math.floor(Math.random()*3);
+			var entrance = {
+				img: entrance_imgs[dir].tag,
+				id : entrance_imgs[dir].id,
+				x : x,
+				y : y,
+				bmp : new createjs.Bitmap(entrance_imgs[dir].tag)
+			};
+			entrance.bmp.x = x;
+			entrance.bmp.y = y;
+			entrance.bmp.obj = {
+				type : 'entrance',
+				id : i,
+			};
+			this.entrances.push(entrance);
+			self.outside.mapWrap.addChild(entrance.bmp);
+			prevXY = [x, y];
+		}
 		
-		
+		//lets get some dudes
+		this.outside.dudes = [];
+		var numDudes = Math.floor(Math.random()*4)+1;
+		for(var i=0;i<numDudes;i++){
+			var dude = new Enemy(self);
+			dude.animation.x = Math.floor(Math.random()*1000);
+			dude.animation.y = Math.floor(Math.random()*1000);
+			dude.animation.gotoAndPlay("walk");
+			this.outside.dudes.push(dude);
+			this.outside.mapWrap.addChild(dude.enemyWrap);
+		}
+
 		self.curmap = this.outside;
 
 		self.wrap.addChild(this.outside.mapWrap);
+
+		self.loadKeypad();
+	};
+
+	this.loadKeypad = function(){
+		var self = this;
+
+		this.keypadWrap = new createjs.Container();
+		var keypadWrap = this.keypadWrap;
+
+		this.keypadButtons = [
+			new createjs.Rectangle(30,110,24,24),
+			new createjs.Rectangle(5,40,24,20),
+			new createjs.Rectangle(30,40,24,20),
+			new createjs.Rectangle(55,40,24,20),
+			new createjs.Rectangle(5,60,24,20),
+			new createjs.Rectangle(30,60,24,20),
+			new createjs.Rectangle(55,60,24,20),
+			new createjs.Rectangle(5,80,24,20),
+			new createjs.Rectangle(30,80,24,20),
+			new createjs.Rectangle(55,80,24,20)
+		];
+
+		this.keypadButtons = [
+			new createjs.Bitmap(self.game.assets.img.keypad_0.tag).set({x:30,y:110}),
+			new createjs.Bitmap(self.game.assets.img.keypad_1.tag).set({x:5,y:40}),
+			new createjs.Bitmap(self.game.assets.img.keypad_2.tag).set({x:30,y:40}),
+			new createjs.Bitmap(self.game.assets.img.keypad_3.tag).set({x:55,y:40}),
+			new createjs.Bitmap(self.game.assets.img.keypad_4.tag).set({x:5,y:60}),
+			new createjs.Bitmap(self.game.assets.img.keypad_5.tag).set({x:30,y:60}),
+			new createjs.Bitmap(self.game.assets.img.keypad_6.tag).set({x:55,y:60}),
+			new createjs.Bitmap(self.game.assets.img.keypad_7.tag).set({x:5,y:80}),
+			new createjs.Bitmap(self.game.assets.img.keypad_8.tag).set({x:30,y:80}),
+			new createjs.Bitmap(self.game.assets.img.keypad_9.tag).set({x:55,y:80}),
+		];
+		for(var i=0;i<this.keypadButtons.length;i++){
+			this.keypadButtons[i].char = i;
+			//this.keypadButtons[i].visible = false;
+			this.keypadButtons[i].addEventListener("click",function(evt){
+				console.log("Keypad click",evt.target);
+				self.keyInputs.text.text += evt.target.char;
+				if(self.keyInputs.enter_code.visible){
+					self.keyInputs.enter_code.visible = false;
+					self.keyInputs.text.visible = true;
+				}
+			});
+			keypadWrap.addChild(this.keypadButtons[i]);
+		}
+
+		
+		var keypadBG = new createjs.Bitmap(self.game.assets.img.keypad.tag);
+		//keypadBG.setTransform(0,0,2,2);
+		//keypadBG.alpha = 0.8;
+		keypadWrap.addChild(keypadBG);
+
+
+		this.keyInputs = {
+			'enter_code': new createjs.Bitmap(self.game.assets.img.keypad_entercode.tag).set({x:10, y:10}),
+			'accepted' : new createjs.Bitmap(self.game.assets.img.keypad_accepted.tag).set({x:10, y:10, visible: false}),
+			'invalid' : new createjs.Bitmap(self.game.assets.img.keypad_invalid.tag).set({x:10, y:10, visible: false}),
+			'text' : new createjs.Text("","12px Courier New Bold","#000000").set({x:10,y:8,visible: false})
+		};
+
+		keypadWrap.addChild(this.keyInputs.enter_code, this.keyInputs.accepted, this.keyInputs.invalid);
+		keypadWrap.addChild(this.keyInputs.text);
+
+		keypadWrap.setTransform(0,0,2,2);
+
+		
+
+		keypadWrap.x = self.game.width/2 - 84;
+		keypadWrap.y = self.game.height/2 - 140;
+		keypadWrap.visible = false;
+		self.game.stage.addChild(self.keypadWrap);
 	};
 }
