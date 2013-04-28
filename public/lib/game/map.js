@@ -2,6 +2,7 @@
 
 function Map(state, opts){
 	this.state = state;
+	this.game = this.state.game;
 	this.data = null;
 	this.tilesheet = null;
 	this.map = null;
@@ -14,10 +15,12 @@ function Map(state, opts){
 	this.params = opts;
 
 	this.tilePosition = {
-		current : {x: 0, y: 0},
+		current : {x: 10, y: 10},
 		max : { x: 21, y: 15 },
 		min : { x: 0, y: 0}
 	};
+
+	this.cellBitmaps = []; //x,y array of bitmaps to make it easy to old ones
 
 	console.log(this.params);
 	this.loadTiles = function(img){
@@ -86,6 +89,8 @@ function Map(state, opts){
 		tilewidth = self.mapData.tilewidth; tileheight = self.mapData.tileheight;
 
 		self.mapWrap = new createjs.Container();
+		self.bitmapWrap = new createjs.Container();
+		self.mapWrap.addChild(self.bitmapWrap);
 		var mapWidth = 0, mapHeight = 0;
 		console.log(this.mapData.layers.length);
 		//var idx = 0;
@@ -97,10 +102,13 @@ function Map(state, opts){
 			if(layerData.width > mapWidth ) mapWidth = layerData.width;
 			for ( var y = 0; y < layerData.height; y++) {
 				for ( var x = 0; x < layerData.width; x++) {
-					// create a new Bitmap for each cell
-					var cellBitmap = new createjs.BitmapAnimation(self.tilesheet);
+					
 					// layer data has single dimension array
 					var idxy = x + y * layerData.width;
+					if(undefined==layerData.data[idxy] || layerData.data[idxy] < 0) continue;
+					
+					// create a new Bitmap for each cell
+					var cellBitmap = new createjs.BitmapAnimation(self.tilesheet);
 					// tilemap data uses 1 as first value, EaselJS uses 0 (sub 1 to load correct tile)
 					cellBitmap.gotoAndStop(layerData.data[idxy]-1 );
 					// isometrix tile positioning based on X Y order from Tiled
@@ -111,6 +119,10 @@ function Map(state, opts){
 					cellBitmap.x = x*tilewidth;
 					cellBitmap.y = y*tileheight;
 					// add bitmap to map container
+					if(!self.cellBitmaps[x]) self.cellBitmaps[x] = [];
+					if(self.cellBitmaps[x][y] ){ self.bitmapWrap.removeChild(self.cellBitmaps[x][y]); }
+					self.cellBitmaps[x][y] = cellBitmap;
+					self.bitmapWrap.addChild(self.cellBitmaps[x][y]);
 					//self.mapWrap.addChild(cellBitmap);
 					//@toDo: should render only canvas size map
 				}
@@ -126,8 +138,11 @@ function Map(state, opts){
 			self.mapWrap.addChild(cellBitmap);
 		}
 		console.log(mapWidth, mapHeight);
+		self.mapTileWidth = mapWidth;
+		self.mapTileHeight = mapHeight;
 		self.mapWidth = mapWidth * self.opts.tile_width;
 		self.mapHeight = mapHeight * self.opts.tile_height;
+
 		//self.mapWrap.x = (mapWidth*self.opts.tile_width)/2;
 		//self.mapWrap.y = (mapHeight*self.opts.tile_height)/2;
 
@@ -159,6 +174,7 @@ function Map(state, opts){
 		var tilewidth  = self.opts.tile_width;
 		var tileheight = self.opts.tile_height;
 		var layerData  = this.mapData.layers[0];
+		var xD, yD, xD1, yD1;
 
 		switch(type){
 			case 'up':
@@ -166,40 +182,61 @@ function Map(state, opts){
 				x1 = this.tilePosition.max.x + 1;
 				y0 = this.tilePosition.max.y;
 				y1 = this.tilePosition.max.y + 2;
+
+				xD = this.tilePosition.min.x - 1;
+				xD1 = this.tilePosition.max.x + 1;
+				yD = this.tilePosition.min.y - 6;
+				yD1 = this.tilePosition.min.y -4;
 				break;
 			case 'down':
 				x0 = this.tilePosition.min.x - 1;
 				x1 = this.tilePosition.max.x + 1;
 				y0 = this.tilePosition.min.y - 2;
 				y1 = this.tilePosition.min.y;
+
+				xD = this.tilePosition.min.x - 1;
+				xD1 = this.tilePosition.max.x + 1;
+				yD = this.tilePosition.max.y +4;
+				yD1 = this.tilePosition.max.y + 6;
 				break;
 			case 'right':
 				x0 = this.tilePosition.max.x;
 				x1 = this.tilePosition.max.x + 2;
 				y0 = this.tilePosition.min.y - 1;
 				y1 = this.tilePosition.max.y + 1;
+
+				xD = this.tilePosition.min.x - 6;
+				xD1 = this.tilePosition.min.x -4;
+				yD = this.tilePosition.min.y - 1;
+				yD1 = this.tilePosition.max.y + 1;
 				break;
 			case 'left':
 				x0 = this.tilePosition.min.x - 2;
 				x1 = this.tilePosition.min.x;
 				y0 = this.tilePosition.min.y - 1;
 				y1 = this.tilePosition.max.y + 1;
+
+				xD = this.tilePosition.max.x +4;
+				xD1 = this.tilePosition.max.x + 6;
+				yD = this.tilePosition.min.y - 1;
+				yD1 = this.tilePosition.max.y + 1;
 				break;
 		}
 
-		console.log('Current x: ' + this.tilePosition.current.x + ' Max ' + this.tilePosition.max.x + ' Min ' + this.tilePosition.min.x);
-		console.log('Current y: ' + this.tilePosition.current.y + ' Max ' + this.tilePosition.max.y + ' Min ' + this.tilePosition.min.y);
+		//console.log('Current x: ' + this.tilePosition.current.x + ' Max ' + this.tilePosition.max.x + ' Min ' + this.tilePosition.min.x);
+		//console.log('Current y: ' + this.tilePosition.current.y + ' Max ' + this.tilePosition.max.y + ' Min ' + this.tilePosition.min.y);
 
-		if(x0 <= 0)
-			x0 = 0;
+		if(x0 <= -(self.mapTileWidth/2))
+			x0 = -1*self.mapTileWidth/2;
 		if(y0 <= 0)
 			y0 = 0;
-		if(x1 <= 0)
-			x1 = 0;
+		if(x1 <= -(self.mapTileWidth/2))
+			x1 = -1*self.mapTileWidht/2;
 		if(y1 <= 0)
 			y1 = 0;
 
 		// lazy delete
+		/*
 		for (var x = 0; x <= tilewidth ; x++) {
 			for (var y = 0; y <= tileheight ; y++) {
 				if(x < x0 || x > x1) {
@@ -212,15 +249,36 @@ function Map(state, opts){
 				}
 			}
 		}
+		*/
+		/*
+		for (var x = xD; x <= xD1 ; x++) {
+			for ( var y = yD; y <= yD1 ; y++) {
+				if(self.cellBitmaps[x]==undefined || self.cellBitmaps[x][y]==undefined ) return;
+				self.bitmapWrap.removeChild(self.cellBitmaps[x][y]);
+				self.cellBitmaps[x][y] = undefined;
+			}
+		}
+		*/
 
 		for (var x = x0; x <= x1 ; x++) {
+			if(x < 0) continue;
+			if(x >= self.mapTileWidth) continue;
 			for ( var y = y0; y <= y1 ; y++) {
-				var cellBitmap = new createjs.BitmapAnimation(self.tilesheet);
+				if(y<0) continue;
+				if(y>=self.mapTileHeight) continue;
+				if(self.cellBitmaps[x] && self.cellBitmaps[x][y] != undefined ) continue;
 				var idxy = x + y * layerData.width;
+				if(undefined==layerData.data[idxy] || layerData.data[idxy] < 0) continue;
+				var cellBitmap = new createjs.BitmapAnimation(self.tilesheet);
+				
 				cellBitmap.gotoAndStop(layerData.data[idxy]-1);
 				cellBitmap.x = x*tilewidth;
 				cellBitmap.y = y*tileheight;
-				self.mapWrap.addChild(cellBitmap);
+				if(!self.cellBitmaps[x]) self.cellBitmaps[x] = [];
+				if(self.cellBitmaps[x][y] ){ self.bitmapWrap.removeChild(self.cellBitmaps[x][y]); }
+				self.cellBitmaps[x][y] = cellBitmap;
+				self.bitmapWrap.addChild(self.cellBitmaps[x][y]);
+				//self.mapWrap.addChild(cellBitmap);
 			}
 		}
 
@@ -231,10 +289,12 @@ function Map(state, opts){
 		//when player moves map wrapper shifts around player - 
 		//check for collision if ok return true
 
-		if( 0 < this.mapWrap.x - vel[0] ) return false;
-		if( 0 < this.mapWrap.y - vel[1] ) return false;
-		if( this.mapWidth < (this.mapWrap.x - vel[0])*-1 ) return false;
-		if( this.mapheight < (this.mapWrap.y - vel[1])*-1 ) return false;
+		if(vel[0]==0&&vel[1]==0) return;
+
+		if( 0 < this.mapWrap.x - vel[0] - this.game.width/2 ) return false;
+		if( 0 < this.mapWrap.y - vel[1] - this.game.height/2 ) return false;
+		if( this.mapWidth < (this.mapWrap.x - vel[0])*-1 + this.game.width/2) return false;
+		if( this.mapHeight < (this.mapWrap.y - vel[1])*-1 + this.game.height/2 + 50) return false;
 
 		var self       = this;
 		var tilewidth  = self.opts.tile_width;
@@ -243,7 +303,7 @@ function Map(state, opts){
 		this.mapWrap.x -= vel[0];
 		this.mapWrap.y -= vel[1];
 
-		// console.log(this.mapWrap.x + ',' + this.mapWrap.y + '::' + vel[0] + '.' + vel[1]);
+		 //console.log(this.mapWrap.x + ',' + this.mapWrap.y + '::' + vel[0] + '.' + vel[1]);
 		// console.log(this.mapWrap.x + ':::::' + this.tilePosition.current.x + ' - ' + this.tilePosition.max.x + ' - ' + this.tilePosition.min.x);
 
 		if (this.tilePosition.current.x > Math.floor(this.mapWrap.x*-1 / tilewidth)) {
@@ -258,13 +318,13 @@ function Map(state, opts){
 			this.loadTile('right');
 		}
 
-		if (this.tilePosition.current.y > Math.floor(this.mapWrap.y*-1 / tileheight)) {
-			this.tilePosition.current.y = Math.floor(this.mapWrap.y*-1 / tileheight);
+		if (this.tilePosition.current.y > Math.floor( (this.mapWrap.y)*-1 / tileheight)) {
+			this.tilePosition.current.y = (Math.floor( (this.mapWrap.y)*-1 / tileheight) );
 			this.tilePosition.max.y--;
 			this.tilePosition.min.y--;
 			this.loadTile('down');
-		} else if (this.tilePosition.current.y < Math.floor(this.mapWrap.y*-1 / tileheight)) {
-			this.tilePosition.current.y = Math.floor(this.mapWrap.y*-1 / tileheight);
+		} else if (this.tilePosition.current.y < Math.floor( (this.mapWrap.y)*-1 / tileheight)) {
+			this.tilePosition.current.y = Math.floor( (this.mapWrap.y)*-1 / tileheight);
 			this.tilePosition.max.y++;
 			this.tilePosition.min.y++;
 			this.loadTile('up');

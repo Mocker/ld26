@@ -1,0 +1,17 @@
+running left 1 = 0 74 21 32
+running left 2 = 22 74 21 32
+running left 3 = 102 0 21 32
+running left 4 = 68 37 21 32
+running left 5 = 44 74 21 32
+running left 6 = 90 37 21 32
+running left 7 = 68 70 21 32
+running left 8 = 90 70 21 32
+shooting 1 = 0 0 33 36
+shooting 2 = 34 0 33 36
+shooting 3 = 68 0 33 36
+shooting 5 = 0 37 33 36
+shooting4 = 34 37 33 36
+
+
+([\w\s]+)=\s(\d+)\s(\d+)\s(\d+)\s(\d+)\n
+[\2,\3,\4,\5], //\1\n

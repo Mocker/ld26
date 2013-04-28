@@ -1,0 +1,14 @@
+tiles_0000_dude = 198 0 19 30
+tiles_0001_top-right-inside-coner = 0 81 32 32
+tiles_0002_bottom-right-inside-coner = 33 81 32 32
+tiles_0003_bottom-left-inside-conrer = 66 81 32 32
+tiles_0004_top-left-inside-corner = 99 0 32 32
+tiles_0005_top-right-outside-corner = 99 33 32 32
+tiles_0006_bottom-left-outside-corner = 0 0 32 80
+tiles_0007_top-left-outside-corner = 132 0 32 32
+tiles_0008_bottom-right-outside-corner = 33 0 32 80
+tiles_0009_bottom-side-wall = 132 33 32 32
+tiles_0010_right-side-wall = 99 66 32 32
+tiles_0011_left-side-wall = 165 0 32 32
+tiles_0012_top-side-wall = 66 0 32 80
+tiles_0013_ground = 165 33 32 32

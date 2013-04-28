@@ -29,6 +29,35 @@ function Player(playstate) {
 	//example structure for storing spritesheet and related animation data
 	this.spritesheets = {
 		player_anim : {
+			images : [this.game.assets.img.player_sheet.tag],
+			frames : 
+				//{ width: 21, height: 32, regX: 12, regY: 16},
+				
+				[
+				[0,74,21,32], //running left 1 
+				[22,74,21,32], //running left 2 
+				[102,0,21,32], //				//running left 3 
+				[68,37,21,32], //				running left 4 
+				[44,74,21,32], //				running left 5 
+				[90,37,21,32], //				running left 6 
+				[68,70,21,32], //				running left 7 
+				[90,70,21,32], //				running left 8 
+				[0,0,33,36], //				shooting 1 
+				[34,0,33,36], //				shooting 2 
+				[68,0,33,36], //				shooting 3 
+				[ 34, 37, 33, 36, ], //shooting4
+				[0,37,33,36], //				shooting 5 
+				
+			], 
+			animations : {
+				run : [0, 7, 'run', 1],
+				walk : [0, 7, 'walk', 4],
+				stand : [11],
+				shoot : [8,12, 'shoot',5],
+			}
+		}
+		/*
+		player_anim : {
 			images : [this.game.assets.img.player_anim.tag], //match id loaded into assets from preloaded
 			frames : { width: 64, height: 64, regX: 32, regY: 32 }, //width/height for each frame in this spritesheet
 			animations : {
@@ -37,6 +66,7 @@ function Player(playstate) {
 				stand : [3]
 			}
 		}
+		*/
 	};
 
 	// loads player up
@@ -69,30 +99,10 @@ function Player(playstate) {
 	this.handleTick = function(evt){
 
 		// Hit testing the screen width, otherwise our sprite would disappear
-		/*
-		if (this.vel[0] > 0 && this.animation.x >= this.screen_width - 16) {
-			// We've reached the right side of our screen
-			// We need to walk left now to go back to our initial position
-			//this.animation.direction = -90;
-			this.animation.gotoAndPlay("stand");
-			this.vel[0] = 0;
-			this.animation.x = this.screen_width -16;
-		}
-
-		if (this.vel[0] < 0 && this.animation.x < 16) {
-			// We've reached the left side of our screen
-			// We need to walk right now
-			//this.animation.direction = 90;
-			this.animation.gotoAndPlay("stand");
-			this.vel[0] = 0;
-			this.animation.x = 16;
-		}
-		*/
 		
-		/* Move tilemap instead of animation
-		this.animation.x += this.vel[0];
-		this.animation.y += this.vel[1];
-		*/
+		//when firing unable to move
+		if(this.isFiring) this.vel = [0,0];
+
 		this.state.curmap.move(this.vel);
 
 		/*
@@ -176,19 +186,25 @@ function Player(playstate) {
 				//TODO:: check keycode - enter building blah blah
 
 				createjs.Tween.get(self.state.keyInputs.text).to({alpha:0 }, 1000).call(function(){
-					self.state.keyInputs.invalid.alpha = 1;
-					self.state.keyInputs.invalid.visible = true;
-					createjs.Tween.get(self.state.keyInputs.invalid).to({alpha:1},1000).to({alpha:0.5},1000).to({alpha:1},1000);
+					self.state.keyInputs.accepted.alpha = 0;
+					self.state.keyInputs.accepted.visible = true;
+					createjs.Tween.get(self.state.keyInputs.accepted).to({alpha:1},500).to({alpha:0.5},1000).to({alpha:1},1000);
 				});
 				//fade back in and close
-				createjs.Tween.get(self.state.wrap).wait(2500).to({alpha:1 }, 1500).call(function(){
+				createjs.Tween.get(self.state.keypadWrap).wait(1000).to({alpha:0 }, 1500).call(function(){
 						self.state.keyInputs.text.text = "";
 						self.state.keyInputs.text.visible = false;
 						self.state.keyInputs.text.alpha = 1;
 						self.state.keyInputs.enter_code.visible = true;
 						self.state.keyInputs.invalid.visible = false;
 						self.state.keypadWrap.visible = false;
-						self.state.paused = false;
+						
+						//load level
+						self.state.loadLvl(self.curEntrance);
+						createjs.Tween.get(self.state.wrap).to({alpha:1 }, 2000).call(function(){
+							self.state.paused = false;
+						});
+						
 			}		);
 			}
 
@@ -200,16 +216,47 @@ function Player(playstate) {
 			for(var i=0;i<intersects.length;i++){
 				if(intersects[i].obj ){
 					console.log("hit!",intersects[i].obj);
-					
+					self.curEntrance = intersects[i].obj;
 					self.state.paused = true;
 					createjs.Tween.get(self.state.wrap).to({alpha:0 }, 1500).call(function(){
+						self.state.keypadWrap.alpha = 1;
 						self.state.keypadWrap.visible = true;
 
 			}		);
+					break;
 				}
 			}
 
 		}
+	};
+
+
+
+	this.onSpace = function(mouseUp) {
+		if(mouseUp){
+			this.holding_space = false;
+			return;
+		}
+
+		if(this.isFiring) return; //already pew pewing
+		this.pew();
+	};
+	this.pew = function(){
+		var self = this;
+		this.isFiring = true;
+		this.animation.addEventListener("animationend", function(){ self.onanimationend(); });
+		if(this.animation.currentAnimation == "walk" || this.animation.currentAnimation=="run" || this.animation.currentAnimation=="stand") this.animation.gotoAndPlay("shoot");
+		else this.animation.gotoAndPlay("shoot_h");
+	};
+	this.onanimationend = function(){
+		var self = this;
+		if(!self.isFiring) return;
+		//console.log("pew");
+		//if(this.animation.currentAnimation != "shoot" && this.animation.currentAnimation != "shoot_h") return;
+		this.isFiring = false;
+		if(this.animation.currentAnimation == "shoot" ) this.animation.gotoAndPlay("stand");
+		else this.animation.gotoAndStop("stand_h");
+		
 	}
 
 	//@toDo remove this

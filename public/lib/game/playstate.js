@@ -44,6 +44,7 @@ function PlayState(game){
 			65 : function(up){ self.player.moveLeft(up); },
 			68 : function(up){ self.player.moveRight(up); },
 			13 : function(up){ self.player.enter(up); },
+			32 : function(up){ self.player.onSpace(up); },
 		};
 
 		//create map mask
@@ -99,7 +100,9 @@ function PlayState(game){
 
 	this.handleKeyUp = function(evt){
 		if(this.paused) return;
+		//console.log(evt.keyCode);
 		if(self.keyHandlers[evt.keyCode] ){
+
 			self.keyHandlers[evt.keyCode](true);
 		}
 	};
@@ -156,7 +159,7 @@ function PlayState(game){
 			entrance.bmp.y = y;
 			entrance.bmp.obj = {
 				type : 'entrance',
-				id : i,
+				lvl : i,
 			};
 			this.entrances.push(entrance);
 			self.outside.mapWrap.addChild(entrance.bmp);
@@ -166,6 +169,7 @@ function PlayState(game){
 		//lets get some dudes
 		this.outside.dudes = [];
 		var numDudes = Math.floor(Math.random()*4)+1;
+		numDudes = 0;
 		for(var i=0;i<numDudes;i++){
 			var dude = new Enemy(self);
 			dude.animation.x = Math.floor(Math.random()*1000);
@@ -253,4 +257,111 @@ function PlayState(game){
 		keypadWrap.visible = false;
 		self.game.stage.addChild(self.keypadWrap);
 	};
+
+
+	this.loadLvl = function(entrance){
+		var self = this;
+		console.log("load level ",entrance.lvl);
+		var lvlnum = entrance.lvl;
+		self.wrap.removeChild(self.curmap.mapWrap);
+		if(this.levels[entrance.lvl]==undefined){
+			if(!this.lvlTiles) this.loadLvlTiles();
+			//create the level
+			ROT.RNG.setSeed(Date().toString());
+			var map_w = Math.floor(Math.random()*20)+30;
+			var map_h = Math.floor(Math.random()*20)+30;
+			//if(!this.mapDebug) this.mapDebug = ROT.Display({fontSize:8});
+			var digger = new ROT.Map.Digger(map_w, map_h);
+			var keymap = {};
+			var mapA = [];
+			var freecells = []; 
+			var digCallback = function(x,y,value){
+				//if(value){ return; }
+				var key = x+","+y;
+				var idx = x+y*map_w;
+				keymap[key] = (value)?value:".";
+				mapA[idx] = (value)?20:13 ; //tileid
+				freecells.push(key);
+
+			};
+			digger.create(digCallback);
+			var lvl= {
+				lvl: lvl,
+				keymap : keymap,
+				tile_w : map_w,
+				tile_h : map_h,
+				digger : digger,
+				mapA : mapA,
+				freecells : freecells,
+				rooms : digger.getRooms(),
+				corridors : digger.getCorridors()
+			};
+			this.levels[lvlnum] = lvl;
+
+			lvl.map = new Map(self, {
+				width: map_w,
+				height: map_h
+			});
+			var mapData = {
+				height: map_h, 
+				width: map_w,
+				layers : [{
+					data : lvl.mapA,
+					height: map_h,
+					width: map_w,
+					visible : true,
+					opacity : 1,
+					type : "tilelayer",
+					x : 0,
+					y : 0,
+					name : "ground00"
+				}],
+				orientation : "square",
+				properties : {},
+				tilesets : [],
+				tileheight : 32,
+				tilewidth : 32,
+				version : 1,
+			};
+			lvl.map.tilesheet = self.lvlTiles;
+			lvl.map.loadMap(mapData);
+			lvl.map.renderMap();
+
+			self.curlvl = lvlnum;
+			self.curmap = lvl.map;
+
+			self.wrap.addChild(lvl.map.mapWrap);
+			//go through rooms and corridors to set tiles
+			//SHOW(this.mapDebug.getContaine());
+		}
+	};
+
+	this.loadLvlTiles = function(){
+		//load spritesheet for the level tiles
+		
+		var sprites = {
+			images: [self.game.assets.img.tiles_sheet.tag],
+			frames : [
+				[198,0,19,30], //tiles_0000_dude 
+				[0,81,32,32], //				tiles_0001_top-right-inside-coner 
+				[33,81,32,32], //				tiles_0002_bottom-right-inside-coner 
+				[66,81,32,32], //				tiles_0003_bottom-left-inside-conrer 
+				[99,0,32,32], //				tiles_0004_top-left-inside-corner 
+				[99,33,32,32], //				tiles_0005_top-right-outside-corner 
+				[0,0,32,80], //				tiles_0006_bottom-left-outside-corner 
+				[132,0,32,32], //				tiles_0007_top-left-outside-corner 
+				[33,0,32,80], //				tiles_0008_bottom-right-outside-corner 
+				[132,33,32,32], //				tiles_0009_bottom-side-wall 
+				[99,66,32,32], //				tiles_0010_right-side-wall 
+				[165,0,32,32], //				tiles_0011_left-side-wall 
+				[66,0,32,80], //				tiles_0012_top-side-wall 
+				[165,33,32,32], //				tiles_0013_ground 
+			],
+		};
+		this.lvlTiles = new createjs.SpriteSheet(sprites);
+		
+	};
+
+
+
 }
