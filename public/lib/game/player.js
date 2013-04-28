@@ -22,6 +22,8 @@ function Player(playstate) {
 		conditions : [] //track status ailments?
 	};
 
+	this.bullets = [];
+
 	this.inventory = [];
 	this.vel = [0,0];
 	this.pos = {x:0,y:0};
@@ -97,6 +99,14 @@ function Player(playstate) {
 	};
 
 	this.handleTick = function(evt){
+
+		// Bullets
+		//speed = 15;
+		speed=5;
+		for(var i=0;i< this.bullets.length;i++) {
+            var s =  this.bullets[i];
+            s.x += speed;
+        }
 
 		// Hit testing the screen width, otherwise our sprite would disappear
 		
@@ -232,8 +242,8 @@ function Player(playstate) {
 
 
 
-	this.onSpace = function(mouseUp) {
-		if(mouseUp){
+	this.onSpace = function(isMouseUp) {
+		if(isMouseUp){
 			this.holding_space = false;
 			return;
 		}
@@ -241,13 +251,32 @@ function Player(playstate) {
 		if(this.isFiring) return; //already pew pewing
 		this.pew();
 	};
+
 	this.pew = function(){
 		var self = this;
 		this.isFiring = true;
 		this.animation.addEventListener("animationend", function(){ self.onanimationend(); });
 		if(this.animation.currentAnimation == "walk" || this.animation.currentAnimation=="run" || this.animation.currentAnimation=="stand") this.animation.gotoAndPlay("shoot");
 		else this.animation.gotoAndPlay("shoot_h");
+
+
+        var s = this.bullet();
+        // s.x = event.stageX;
+        // s.y = event.stageY;
+        s.x = 10;
+        s.y = 10;
+        this.bullets.push(s);
+        this.game.stage.addChild(s);
 	};
+
+
+	this.bullet = function() {
+        var s = new createjs.Shape();
+        s.graphics.beginFill("#FF0000").drawCircle(0, 0, 10).endFill();
+        return s;
+    }
+
+
 	this.onanimationend = function(){
 		var self = this;
 		if(!self.isFiring) return;
