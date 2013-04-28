@@ -47,24 +47,27 @@ function Map(state, opts){
 	// map structure will need to include layers for 32x32 and 64x64 images
 	// and details for if the tiles are blocking/obstacles/etc
 	// maybe couple layers for background non/blocking tiles, 
-	this.loadMap = function(data) {
+	this.loadMap = function(data,randomize) {
 		var self = this;
 		this.mapData = data;
 		this.mapData.layers[0].height = this.params.height;
 		this.mapData.layers[0].width = this.params.width;
 		var x = Math.random();
-		for(var i=0;i<(this.params.width*this.params.height);i++){
-			x = Math.random();
-			this.mapData.layers[0].data[i] = (x<0.8)?1:2;
-		}
+		if(randomize){
+			for(var i=0;i<(this.params.width*this.params.height);i++){
+				x = Math.random();
+				this.mapData.layers[0].data[i] = (x<0.8)?1:2;
+			}
 
-		this.mapData.layers[0].grid = [];
-		var ran, grid = [];
-		for(x=0;x<this.params.width;x++){
-			grid[x] = [];
-			for(var y=0; y<this.params.height; y++){
-				ran = Math.random();
-				grid[x][y] = (ran<0.8)?1:2;
+
+			this.mapData.layers[0].grid = [];
+			var ran, grid = [];
+			for(x=0;x<this.params.width;x++){
+				grid[x] = [];
+				for(var y=0; y<this.params.height; y++){
+					ran = Math.random();
+					grid[x][y] = (ran<0.8)?1:2;
+				}
 			}
 		}
 

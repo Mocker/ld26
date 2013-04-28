@@ -135,7 +135,7 @@ function PlayState(game){
 			min:5,
 			frames : [3,4,5,6]
 		};
-		this.outside.loadMap(this.outside.dummyMap);
+		this.outside.loadMap(this.outside.dummyMap, true);
 		this.outside.renderMap();
 
 		//place buildings
@@ -181,7 +181,10 @@ function PlayState(game){
 
 		self.curmap = this.outside;
 
-		self.wrap.addChild(this.outside.mapWrap);
+		self.lvlwrap = new createjs.Container();
+
+		self.lvlwrap.addChild(this.outside.mapWrap);
+		self.wrap.addChild(self.lvlwrap);
 
 		self.loadKeypad();
 	};
@@ -263,7 +266,7 @@ function PlayState(game){
 		var self = this;
 		console.log("load level ",entrance.lvl);
 		var lvlnum = entrance.lvl;
-		self.wrap.removeChild(self.curmap.mapWrap);
+		self.lvlwrap.removeChild(self.curmap.mapWrap);
 		if(this.levels[entrance.lvl]==undefined){
 			if(!this.lvlTiles) this.loadLvlTiles();
 			//create the level
@@ -276,7 +279,7 @@ function PlayState(game){
 			var mapA = [];
 			var freecells = []; 
 			var digCallback = function(x,y,value){
-				//if(value){ return; }
+				if(value){ return; }
 				var key = x+","+y;
 				var idx = x+y*map_w;
 				keymap[key] = (value)?value:".";
@@ -330,7 +333,7 @@ function PlayState(game){
 			self.curlvl = lvlnum;
 			self.curmap = lvl.map;
 
-			self.wrap.addChild(lvl.map.mapWrap);
+			self.lvlwrap.addChild(lvl.map.mapWrap);
 			//go through rooms and corridors to set tiles
 			//SHOW(this.mapDebug.getContaine());
 		}
