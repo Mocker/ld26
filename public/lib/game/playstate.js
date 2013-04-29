@@ -62,8 +62,10 @@ function PlayState(game){
 		this.mask.graphics.beginFill('#000000');
 		this.mask.graphics.drawRect(0,0,mapWidth,mapHeight);
 		this.alphamask.graphics.drawCircle(mapWidth/2,mapHeight/2,mapWidth/4).endFill();//drawRect(0,0,mapWidth,this.height).closePath();
+		this.alphamask.alpha = 0.5;
+
 		this.wrap.mask = this.mask;
-		//this.alphamask.cache(0,0,mapWidth,mapHeight);
+		this.alphamask.cache(0,0,mapWidth,mapHeight);
 		this.wrap.filters = [
 			new createjs.AlphaMaskFilter(this.alphamask.cacheCanvas)
 		];
@@ -296,6 +298,8 @@ function PlayState(game){
 				if(value){ return; }
 				var key = x+","+y;
 				var idx = x+y*map_w;
+				if( map2d[x] == undefined) map2d[x] = [];
+				map2d[x][y] = 14;
 				keymap[key] = (value)?value:".";
 				mapA[idx] = (value)?100:14 ; //tileid
 				freecells.push(key);
@@ -307,6 +311,7 @@ function PlayState(game){
 				keymap : keymap,
 				tile_w : map_w,
 				tile_h : map_h,
+				map2d : map2d,
 				digger : digger,
 				mapA : mapA,
 				freecells : freecells,
@@ -314,6 +319,71 @@ function PlayState(game){
 				corridors : digger.getCorridors()
 			};
 			this.levels[lvlnum] = lvl;
+
+			//go through rooms and corridors to set tiles
+			//TODO:: not sure at all how these tiles go together
+			var idx;
+			for(var y=0;y<map_h;y++){
+				for(var x=0;x<map_w;x++){
+					idx = x+y*map_w;
+					
+					if( lvl.mapA[idx] !=14 ) continue;
+					//console.log(x,y,idx,lvl.mapA[idx]);
+					//check to set top tile
+					if( !lvl.map2d[x][y-1] && lvl.map2d[x][y-2] != 14 ){
+						if( lvl.map2d[x+1] && lvl.map2d[x+1][y-2] == 14){
+							lvl.map2d[x][y-2] = 6;
+							lvl.mapA[(x+(y-2)*map_w)] = 9;
+						}
+						else if( lvl.map2d[x-1] && lvl.map2d[x-1][y-2]==14){
+							lvl.map2d[x][y-2] = 8;
+							lvl.mapA[(x+(y-2)*map_w)] = 7;
+						}
+						else {
+							lvl.map2d[x][y-2] = 9;
+							lvl.mapA[(x+(y-2)*map_w)] = 13;
+						}
+					}
+
+					//bottom
+					if( !lvl.map2d[x][y+1] ){
+						lvl.map2d[x][y+1] = 10;
+						lvl.mapA[(x+(y+1)*map_w)] = 10;
+					}		
+
+					//right side
+					if( lvl.map2d[x+1] && lvl.map2d[x+1][y] != 14 ){
+						if(lvl.map2d[x+1][y-1] == 14 ){
+							lvl.map2d[x+1][y] = 8;
+							lvl.mapA[((x+1)+y*map_w)] = 8;
+						}
+						else if(lvl.map2d[x+1][y+1] == 14 ){
+							lvl.map2d[x+1][y-1] = 7;
+							lvl.mapA[((x+1)+(y-1)*map_w)] = 7;
+						}
+						else {
+							lvl.map2d[x+1][y] = 11;
+							lvl.mapA[((x+1)+y*map_w)] = 11;
+						}
+					}
+					//left side
+					if( lvl.map2d[x-1] && lvl.map2d[x-1][y] != 14 ){
+						if(lvl.map2d[x-1][y-1] == 14 ){
+							lvl.map2d[x-1][y] = 6;
+							lvl.mapA[((x-1)+y*map_w)] = 6;
+						}
+						else if(lvl.map2d[x-1][y+1] == 14 ){
+							lvl.map2d[x-1][y-1] = 9;
+							lvl.mapA[((x-1)+(y-1)*map_w)] = 9;
+						}
+						else {
+							lvl.map2d[x-1][y] = 12;
+							lvl.mapA[((x-1)+y*map_w)] = 12;
+						}
+					}	
+
+				}
+			}
 
 			lvl.map = new Map(self, {
 				width: map_w,
@@ -342,6 +412,9 @@ function PlayState(game){
 			};
 			lvl.map.tilesheet = self.lvlTiles;
 			lvl.map.loadMap(mapData);
+
+
+
 			lvl.map.renderMap();
 
 			var pickPos = Math.floor(Math.random()*lvl.freecells.length);
@@ -355,18 +428,7 @@ function PlayState(game){
 			self.curmap = lvl.map;
 
 			self.lvlwrap.addChild(lvl.map.mapWrap);
-			//go through rooms and corridors to set tiles
-			var idx;
-			for(var x=0;x<map_w;x++){
-				for(var y=0;y<map_h;y++){
-					idx = x+y*map_w;
-					if( lvl.mapA[idx] !=14 ) continue;
-					
-
-					
-
-				}
-			}
+			
 			//SHOW(this.mapDebug.getContaine());
 		}
 	};
