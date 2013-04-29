@@ -29,8 +29,8 @@ function Enemy(playstate) {
 			images : [this.game.assets.img.walker_anim.tag],
 			frames : { width: 32, height: 32, regX: 16, regY: 16 }, //width/height for each frame in this spritesheet
 			animations : {
-				run : [0, 3, 'run', 3],
-				walk : [0, 3, 'walk', 8]
+				run : [0, 5, 'run', 3],
+				walk : [0, 5, 'walk', 8]
 			}
 		}
 	};
