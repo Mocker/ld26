@@ -119,6 +119,7 @@ function Player(playstate) {
 		if(this.vel[0] == 0 && this.vel[1] == 0 && (this.animation.currentAnimation !="stand" || this.animation.currentAnimation != "stand_h")){
 			this.animation.gotoAndPlay("stand");
 		} */
+		if(this.vel[1] != 0 && this.animation.currentAnimation != "walk" ) this.animation.gotoAndPlay("walk");
 		if(this.vel[0] < 0 && this.animation.currentAnimation != "walk" ) this.animation.gotoAndPlay("walk");
 		if(this.vel[0] > 0 && this.animation.currentAnimation != "walk_h") this.animation.gotoAndPlay("walk_h");
 		// update the stage:
