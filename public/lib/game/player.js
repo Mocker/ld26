@@ -19,6 +19,7 @@ function Player(playstate) {
 	this.stats = {
 		health     : 100,
 		movement   : 8,
+    		facing     : 0,
 		conditions : [] //track status ailments?
 	};
 
@@ -119,7 +120,8 @@ function Player(playstate) {
 		if(this.vel[0] == 0 && this.vel[1] == 0 && (this.animation.currentAnimation !="stand" || this.animation.currentAnimation != "stand_h")){
 			this.animation.gotoAndPlay("stand");
 		} */
-		if(this.vel[1] != 0 && this.animation.currentAnimation != "walk" ) this.animation.gotoAndPlay("walk");
+		if(this.vel[1] != 0 && this.animation.currentAnimation != "walk" && this.animation.currentAnimation != "walk_h" && this.stats.facing == 0 ) this.animation.gotoAndPlay("walk");
+    		if(this.vel[1] != 0 && this.animation.currentAnimation != "walk" && this.animation.currentAnimation != "walk_h" && this.stats.facing == 1 ) this.animation.gotoAndPlay("walk_h");
 		if(this.vel[0] < 0 && this.animation.currentAnimation != "walk" ) this.animation.gotoAndPlay("walk");
 		if(this.vel[0] > 0 && this.animation.currentAnimation != "walk_h") this.animation.gotoAndPlay("walk_h");
 		// update the stage:
@@ -148,10 +150,16 @@ function Player(playstate) {
 		if(this.animation.direction==angle) return;
 		this.animation.direction = angle;
 	};
+  
+  this.setFacing = function(faceDirection) {
+    this.stats.facing = faceDirection;
+  };
 
 	this.moveUp = function(isMouseUp){
 		if(isMouseUp){
 			this.vel[1] = 0;
+      			if(this.stats.facing == 0) { this.animation.gotoAndPlay("stand"); }
+      			if(this.stats.facing == 1) { this.animation.gotoAndPlay("stand_h"); }
 			return;
 		}
 		this.setDirection(0);
@@ -160,6 +168,8 @@ function Player(playstate) {
 	this.moveDown = function(isMouseUp){
 		if(isMouseUp){
 			this.vel[1] = 0;
+      			if(this.stats.facing == 0) { this.animation.gotoAndPlay("stand"); }
+      			if(this.stats.facing == 1) { this.animation.gotoAndPlay("stand_h"); }
 			return;
 		}
 		this.setDirection(180);
@@ -172,6 +182,7 @@ function Player(playstate) {
 			return;
 		}
 		this.setDirection(90);
+    this.setFacing(0);
 		this.vel[0] = -this.stats.movement;
 	};
 	this.moveRight = function(isMouseUp){
@@ -181,6 +192,7 @@ function Player(playstate) {
 			return;
 		}
 		this.setDirection(270);
+    this.setFacing(1);
 		this.vel[0] = this.stats.movement;
 	};
 
@@ -256,7 +268,6 @@ function Player(playstate) {
 	this.pew = function(){
 		var self = this;
 		this.isFiring = true;
-		createjs.Sound.play("laser2");
 		this.animation.addEventListener("animationend", function(){ self.onanimationend(); });
 		if(this.animation.currentAnimation == "walk" || this.animation.currentAnimation=="run" || this.animation.currentAnimation=="stand") this.animation.gotoAndPlay("shoot");
 		else this.animation.gotoAndPlay("shoot_h");
