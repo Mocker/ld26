@@ -285,7 +285,6 @@ function Map(state, opts){
 			}
 		}
 
-		console.log(self.mapWrap.children.length);
 	};
 
 	this.move = function(vel){
@@ -333,6 +332,7 @@ function Map(state, opts){
 			this.loadTile('up');
 		}
 
+		//self.state.wrap.updateCache(0,0,self.state.game.width,self.state.game.height);
 		return true;
 	};
 

@@ -49,21 +49,24 @@ function PlayState(game){
 
 		//create map mask
 		this.mask = new createjs.Shape();
+		this.alphamask = new createjs.Shape();
 	// the mask's position will be relative to the parent of its target:
 		mapWidth = this.game.width;
 		mapHeight = this.game.height;
-		//this.mask.x = mapWidth/2;
-		//this.mask.y = mapHeight/2;
+		//this.alphamask.x = mapWidth/2;
+		//this.alphamask.y = mapHeight/2;
 		//this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], this.mask.x, this.mask.y, 10, this.mask.x, this.mask.y, mapHeight/2);
-		//this.mask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], 0, 0, 10, 0, 0, mapHeight/4);
+		//this.alphamask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 1], 0, 0, 10, 0, 0, mapHeight/4);
+		this.alphamask.graphics.beginRadialGradientFill(["#000000", "rgba(0,0,0,0)"], [0.2, 0.6], 0, 0, 10, 0, 0, mapHeight/4);
+		
 		this.mask.graphics.beginFill('#000000');
 		this.mask.graphics.drawRect(0,0,mapWidth,mapHeight);
-		//this.mask.graphics.drawCircle(mapWidth/2,mapHeight/2,mapWidth/2).endFill();//drawRect(0,0,mapWidth,this.height).closePath();
+		this.alphamask.graphics.drawCircle(mapWidth/2,mapHeight/2,mapWidth/4).endFill();//drawRect(0,0,mapWidth,this.height).closePath();
 		this.wrap.mask = this.mask;
-		//this.mask.cache(0,0,mapWidth,mapHeight);
-		//this.wrap.filters = [
-		//	new createjs.AlphaMaskFilter(this.mask.cacheCanvas)
-		//];
+		//this.alphamask.cache(0,0,mapWidth,mapHeight);
+		this.wrap.filters = [
+			new createjs.AlphaMaskFilter(this.alphamask.cacheCanvas)
+		];
 		//this.wrap.cache(0,0,mapWidth,mapHeight);
 
 		this.game.stage.addChild(this.wrap);
@@ -88,6 +91,7 @@ function PlayState(game){
 
 
 		}
+
 	};
 
 	this.handleKeyDown = function(evt){
@@ -267,6 +271,15 @@ function PlayState(game){
 		console.log("load level ",entrance.lvl);
 		var lvlnum = entrance.lvl;
 		self.lvlwrap.removeChild(self.curmap.mapWrap);
+		createjs.Sound.play("revup");
+		if(self.curlvl==0){
+			self.wrap.mask = self.alphamask;
+			/*
+			self.wrap.filters = [
+				new createjs.AlphaMaskFilter(self.alphamask.cacheCanvas)
+			];
+			*/
+		}
 		if(this.levels[entrance.lvl]==undefined){
 			if(!this.lvlTiles) this.loadLvlTiles();
 			//create the level
@@ -278,12 +291,13 @@ function PlayState(game){
 			var keymap = {};
 			var mapA = [];
 			var freecells = []; 
+			var map2d = [];
 			var digCallback = function(x,y,value){
 				if(value){ return; }
 				var key = x+","+y;
 				var idx = x+y*map_w;
 				keymap[key] = (value)?value:".";
-				mapA[idx] = (value)?20:13 ; //tileid
+				mapA[idx] = (value)?100:14 ; //tileid
 				freecells.push(key);
 
 			};
@@ -330,11 +344,29 @@ function PlayState(game){
 			lvl.map.loadMap(mapData);
 			lvl.map.renderMap();
 
+			var pickPos = Math.floor(Math.random()*lvl.freecells.length);
+			lvl.playerPos = lvl.freecells[pickPos];
+			var pos = lvl.playerPos.split(",");
+			pos[0] *= mapData.tilewidth;
+			pos[1] *= mapData.tileheight;
+			lvl.map.move(pos);
+
 			self.curlvl = lvlnum;
 			self.curmap = lvl.map;
 
 			self.lvlwrap.addChild(lvl.map.mapWrap);
 			//go through rooms and corridors to set tiles
+			var idx;
+			for(var x=0;x<map_w;x++){
+				for(var y=0;y<map_h;y++){
+					idx = x+y*map_w;
+					if( lvl.mapA[idx] !=14 ) continue;
+					
+
+					
+
+				}
+			}
 			//SHOW(this.mapDebug.getContaine());
 		}
 	};

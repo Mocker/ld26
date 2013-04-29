@@ -244,6 +244,7 @@ function Player(playstate) {
 	this.pew = function(){
 		var self = this;
 		this.isFiring = true;
+		createjs.Sound.play("laser2");
 		this.animation.addEventListener("animationend", function(){ self.onanimationend(); });
 		if(this.animation.currentAnimation == "walk" || this.animation.currentAnimation=="run" || this.animation.currentAnimation=="stand") this.animation.gotoAndPlay("shoot");
 		else this.animation.gotoAndPlay("shoot_h");
