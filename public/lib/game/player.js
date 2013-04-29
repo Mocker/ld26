@@ -103,10 +103,10 @@ function Player(playstate) {
 
 		// Bullets
 		//speed = 15;
-		speed=5;
+		speed=15;
 		for(var i=0;i< this.bullets.length;i++) {
             var s =  this.bullets[i];
-            s.x += speed;
+            s.x += (s.direction==90)?speed : speed*-1;
         }
 
 		// Hit testing the screen width, otherwise our sprite would disappear
@@ -268,6 +268,7 @@ function Player(playstate) {
 	this.pew = function(){
 		var self = this;
 		this.isFiring = true;
+		createjs.Sound.play("laser2");
 		this.animation.addEventListener("animationend", function(){ self.onanimationend(); });
 		if(this.animation.currentAnimation == "walk" || this.animation.currentAnimation=="run" || this.animation.currentAnimation=="stand") this.animation.gotoAndPlay("shoot");
 		else this.animation.gotoAndPlay("shoot_h");
@@ -276,16 +277,20 @@ function Player(playstate) {
         var s = this.bullet();
         // s.x = event.stageX;
         // s.y = event.stageY;
-        s.x = 10;
-        s.y = 10;
+        s.x = self.state.game.width/2;
+        s.y = self.state.game.height/2+16;
+        var bDir = (this.animation.currentAnimation=="shoot")?270 : 90;
+        s.direction = bDir;
         this.bullets.push(s);
-        this.game.stage.addChild(s);
+        this.state.wrap.addChild(s);
 	};
 
 
 	this.bullet = function() {
         var s = new createjs.Shape();
-        s.graphics.beginFill("#FF0000").drawCircle(0, 0, 10).endFill();
+        s.graphics.beginFill("rgba(255,0,0,0.05)").drawCircle(0,0,40).endFill();
+        s.graphics.beginFill("#FF0000").drawCircle(-5, 0, 5).drawRect(-5,-2,5,2).endFill();
+
         return s;
     }
 

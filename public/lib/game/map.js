@@ -336,6 +336,11 @@ function Map(state, opts){
 		return true;
 	};
 
+	//move player to specific tile location
+	this.moveToTile = function(tileX,tileY){
+
+	};
+
 	//handle map updates 
 	this.handleTick = function(evt){
 		//this.mapWrap.x += 1;
