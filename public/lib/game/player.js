@@ -222,6 +222,7 @@ function Player(playstate) {
 						self.state.keyInputs.invalid.visible = false;
 						self.state.keypadWrap.visible = false;
 						
+						createjs.Sound.stop();
 						//load level
 						self.state.loadLvl(self.curEntrance);
 						createjs.Tween.get(self.state.wrap).to({alpha:1 }, 2000).call(function(){

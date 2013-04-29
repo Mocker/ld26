@@ -89,6 +89,13 @@ function PlayState(game){
 			} 
 			else {
 				//update current lvl
+				if(this.curmap && this.curmap.dudes && this.curmap.dudes.length >0){
+					//console.log("move dudes");
+					for(var i=0;i<this.curmap.dudes.length;i++){
+						this.curmap.dudes[i].handleTick(evt);
+					}
+
+				}
 			}
 
 
@@ -145,11 +152,11 @@ function PlayState(game){
 		this.outside.renderMap();
 
 		//place buildings
-		this.entrances = [];
+		this.entrances = [null];
 		var numEntrances = 6;
 		var prevXY = [300,300];
 		var entrance_imgs = [self.game.assets.img.front_entrance, self.game.assets.img.left_entrance, self.game.assets.img.right_entrance];
-		for(var i=0;i<numEntrances;i++){
+		for(var i=1;i<numEntrances;i++){
 			//place entrances randomly increasingly further from spawn
 			var x = Math.floor(Math.random()*200)+prevXY[0]+50;
 			var y = Math.floor(Math.random()*200)+prevXY[1]+50;
@@ -172,25 +179,15 @@ function PlayState(game){
 			prevXY = [x, y];
 		}
 		
-		//lets get some dudes
-		this.outside.dudes = [];
-		var numDudes = Math.floor(Math.random()*4)+1;
-		numDudes = 0;
-		for(var i=0;i<numDudes;i++){
-			var dude = new Enemy(self);
-			dude.animation.x = Math.floor(Math.random()*1000);
-			dude.animation.y = Math.floor(Math.random()*1000);
-			dude.animation.gotoAndPlay("walk");
-			this.outside.dudes.push(dude);
-			this.outside.mapWrap.addChild(dude.enemyWrap);
-		}
-
+		
 		self.curmap = this.outside;
 
 		self.lvlwrap = new createjs.Container();
 
 		self.lvlwrap.addChild(this.outside.mapWrap);
 		self.wrap.addChild(self.lvlwrap);
+
+		createjs.Sound.play("breathyTone1", "none",0,0,1,1,1);
 
 		self.loadKeypad();
 	};
@@ -323,6 +320,7 @@ function PlayState(game){
 			//go through rooms and corridors to set tiles
 			//TODO:: not sure at all how these tiles go together
 			var idx;
+			var decalIt;
 			for(var y=0;y<map_h;y++){
 				for(var x=0;x<map_w;x++){
 					idx = x+y*map_w;
@@ -330,6 +328,7 @@ function PlayState(game){
 					if( lvl.mapA[idx] !=14 ) continue;
 					//console.log(x,y,idx,lvl.mapA[idx]);
 					//check to set top tile
+
 					if( !lvl.map2d[x][y-1] && lvl.map2d[x][y-2] != 14 ){
 						if( lvl.map2d[x+1] && lvl.map2d[x+1][y-2] == 14){
 							lvl.map2d[x][y-2] = 6;
@@ -417,6 +416,53 @@ function PlayState(game){
 
 			lvl.map.renderMap();
 
+			//add decals
+			var numDecals = Math.floor(Math.random()*25)+5;
+			var decaledTiles = {};
+
+			var ran;
+			var decalImgs = [
+				self.game.assets.img.scorchmark1.tag,
+				self.game.assets.img.scorchmark2.tag,
+				self.game.assets.img.scorchmark3.tag,
+				self.game.assets.img.floorGrate.tag
+			];
+			var whichDecal;
+			for(var i=0; i<numDecals;i++){
+				ran = Math.floor(Math.random()*freecells.length);
+
+				if(decaledTiles[ freecells[ran] ] != undefined) continue;
+				var pos = freecells[ran].split(',');
+				whichDecal = Math.floor(Math.random()*decalImgs.length);
+				var bmp = new createjs.Bitmap(decalImgs[whichDecal]);
+				bmp.x = pos[0]*32;
+				bmp.y = pos[1]*32;
+				lvl.map.mapWrap.addChild(bmp);
+				lvl.map.decals.push(bmp);
+				decaledTiles[ freecells[ran] ] = true;
+
+			}
+
+			//lets get some dudes
+			lvl.map.dudes = [];
+			var numDudes = Math.floor(Math.random()*4)+1;
+			for(var i=0;i<numDudes;i++){
+				var dude = new Enemy(self);
+				ran = Math.floor(Math.random()*freecells.length)
+				var pos = freecells[ran].split(',');
+				dude.animation.x = pos[0]*32+15;
+				dude.animation.y = pos[1]*32;
+				dude.tileX = parseInt(pos[0]);
+				dude.tileY = parseInt(pos[1]);
+				//dude.animation.x = Math.floor(Math.random()*(map_w*32));
+				//dude.animation.y = Math.floor(Math.random()*(map_h*32));
+				dude.animation.gotoAndPlay("walk");
+				lvl.map.dudes.push(dude);
+				lvl.map.mapWrap.addChild(dude.enemyWrap);
+				console.log("add dude",dude);
+			}
+
+
 			var pickPos = Math.floor(Math.random()*lvl.freecells.length);
 			lvl.playerPos = lvl.freecells[pickPos];
 			var pos = lvl.playerPos.split(",");
@@ -428,6 +474,8 @@ function PlayState(game){
 			self.curmap = lvl.map;
 
 			self.lvlwrap.addChild(lvl.map.mapWrap);
+
+			createjs.Sound.play("creepyBG2", "none",0,0,1,1,1);
 			
 			//SHOW(this.mapDebug.getContaine());
 		}

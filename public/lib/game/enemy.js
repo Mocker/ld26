@@ -14,6 +14,7 @@ function Enemy(playstate) {
 	//@toDo rename variable names
 	this.animation = null;
 	this.enemyWrap = new createjs.Container();
+	this.doingSomething = false;
 
 	this.stats = {
 		health     : 100,
@@ -24,11 +25,12 @@ function Enemy(playstate) {
 	//example structure for storing spritesheet and related animation data
 	this.spritesheets = {
 		enemy_anim : {
-			images : [this.game.assets.img.enemy_anim.tag], //match id loaded into assets from preloaded
-			frames : { width: 64, height: 64, regX: 32, regY: 32 }, //width/height for each frame in this spritesheet
+			//images : [this.game.assets.img.enemy_anim.tag], //match id loaded into assets from preloaded
+			images : [this.game.assets.img.walker_anim.tag],
+			frames : { width: 32, height: 32, regX: 16, regY: 16 }, //width/height for each frame in this spritesheet
 			animations : {
-				run : [0, 9, 'run', 3],
-				walk : [0, 9, 'walk', 8]
+				run : [0, 3, 'run', 3],
+				walk : [0, 3, 'walk', 8]
 			}
 		}
 	};
@@ -55,7 +57,7 @@ function Enemy(playstate) {
 	};
 
 	this.handleTick = function(evt){
-
+		var self = this;
 		// Hit testing the screen width, otherwise our sprite would disappear
 		/*
 		if (this.animation.x >= this.screen_width - 600) {
@@ -78,6 +80,30 @@ function Enemy(playstate) {
 			this.animation.x -= this.animation.vX;
 		}
 	*/
+
+		if(self.doingSomething) return;
+		var doSomething = Math.random();
+		if(doSomething < 0.6 ) return;
+
+		var targets = [];
+		var curlvl = self.state.levels[self.state.curlvl];
+
+		if( curlvl.map2d[self.tileX+1] && curlvl.map2d[ self.tileX+1][self.tileY]==14 ) targets.push( [self.tileX+1,self.tileY] );
+		if( curlvl.map2d[self.tileX-1] && curlvl.map2d[ self.tileX-1][self.tileY]==14 ) targets.push( [self.tileX-1,self.tileY] );
+		if( curlvl.map2d[ self.tileX][self.tileY+1]==14 ) targets.push( [self.tileX,self.tileY+1] );
+		if( curlvl.map2d[ self.tileX][self.tileY-1]==14 ) targets.push( [self.tileX,self.tileY-1] );
+		//console.log(targets);
+		if(targets.length < 1) return;
+		var which = Math.floor(Math.random()*targets.length);
+		var dir = targets[which];
+		self.doingSomething = true;
+		//console.log("move enemy to ",dir);
+		if(dir[0]<self.tileX && self.animation.currentAnimation == "walk") self.animation.gotoAndPlay("walk_h");
+		else if(dir[0] > self.tileX && self.animation.currentAnimation == "walk_h") self.animation.gotoAndPlay("walk");
+		createjs.Tween.get(self.animation).to({x:(dir[0]*32), y:(dir[1]*32) }, 1500).call(function(){
+					self.doingSomething = false;
+		});
+
 		// update the stage:
 		this.game.stage.update();
 		

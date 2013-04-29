@@ -20,6 +20,8 @@ function Map(state, opts){
 		min : { x: 0, y: 0}
 	};
 
+	this.dudes = [];
+
 	this.cellBitmaps = []; //x,y array of bitmaps to make it easy to old ones
 
 	console.log(this.params);
